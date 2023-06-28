@@ -30,3 +30,12 @@ extension Button {
             .foregroundColor(.white)
     }
 }
+
+extension View {
+    func frameFromScreen(widthScale: CGFloat? = 1.0, heightScale: CGFloat? = 1.0) -> some View {
+        self.frame(
+            width: (widthScale ?? 1.0) * UIScreen.main.bounds.width,
+            height: (heightScale ?? 1.0) * UIScreen.main.bounds.height
+        )
+    }
+}
