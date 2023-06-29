@@ -9,7 +9,16 @@ import SwiftUI
 
 struct Gameplay: View {
     @Environment(\.dismiss) private var dismiss
+    @Namespace private var namespace
     @State private var animateViewsIn = false
+    @State private var tappedCorrectAnswer = false
+    @State private var hintWiggle = false
+    @State private var scaleNextButton = false
+    @State private var movePointsToScore = false
+    @State private var revealHint = false
+    @State private var revealBook = false
+
+    let tempAnswers = [true, false, false, false]
 
     var body: some View {
         GeometryReader { geo in
@@ -21,6 +30,7 @@ struct Gameplay: View {
 
                 VStack {
                     // MARK: Controls
+
                     HStack {
                         Button {
                             // TODO: end game
@@ -39,6 +49,7 @@ struct Gameplay: View {
                     .padding(.vertical, 30)
 
                     // MARK: Question
+
                     VStack {
                         if animateViewsIn {
                             Text("Who is Harry Potter")
@@ -47,11 +58,12 @@ struct Gameplay: View {
                                 .transition(.scale)
                         }
                     }
-                    .animation(.easeInOut(duration: 2), value: animateViewsIn)
+                    .animation(.easeInOut(duration: 1).delay(1), value: animateViewsIn)
 
                     Spacer()
 
                     // MARK: Hints
+
                     HStack {
                         VStack {
                             if animateViewsIn {
@@ -60,9 +72,36 @@ struct Gameplay: View {
                                     .scaledToFit()
                                     .frame(width: 100)
                                     .foregroundColor(.cyan)
-                                    .rotationEffect(.degrees(-15))
+                                    .rotationEffect(.degrees(hintWiggle ? -13 : -17))
                                     .padding()
                                     .transition(.offset(x: -geo.size.width / 2))
+                                    .onAppear {
+                                        withAnimation(
+                                            .easeInOut(duration: 0.1)
+                                                .repeatCount(9)
+                                                .delay(5)
+                                                .repeatForever())
+                                        {
+                                            hintWiggle = true
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        withAnimation(.easeOut(duration: 1)) {
+                                            revealHint = true
+                                        }
+                                    }
+                                    .rotation3DEffect(.degrees(revealHint ? 1440 : 0), axis: (x: 0, y: 1, z: 0))
+                                    .scaleEffect(revealHint ? 5 : 1)
+                                    .opacity(revealHint ? 0 : 1)
+                                    .offset(x: revealHint ? geo.size.width / 2 : 0)
+                                    .overlay(
+                                        Text("The boy who ________")
+                                            .padding(.leading, 33)
+                                            .minimumScaleFactor(0.5)
+                                            .multilineTextAlignment(.center)
+                                            .opacity(revealHint ? 1 : 0)
+                                            .scaleEffect(revealHint ? 1.33 : 0)
+                                    )
                             }
                         }
                         .animation(.easeOut(duration: 1.5).delay(2), value: animateViewsIn)
@@ -79,34 +118,77 @@ struct Gameplay: View {
                                     .frame(width: 100, height: 100)
                                     .background(.cyan)
                                     .cornerRadius(20)
-                                    .rotationEffect(.degrees(15))
+                                    .rotationEffect(.degrees(hintWiggle ? 13 : 17))
                                     .padding()
 
                                     .padding(.horizontal)
                                     .padding(.bottom)
                                     .transition(.offset(x: geo.size.width / 2))
+                                    .onAppear {
+                                        withAnimation(
+                                            .easeInOut(duration: 0.1)
+                                                .repeatCount(9)
+                                                .delay(5)
+                                                .repeatForever())
+                                        {
+                                            hintWiggle = true
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        withAnimation(.easeOut(duration: 1)) {
+                                            revealBook = true
+                                        }
+                                    }
+                                    .rotation3DEffect(.degrees(revealBook ? -1440 : 0), axis: (x: 0, y: 1, z: 0))
+                                    .scaleEffect(revealBook ? 5 : 1)
+                                    .opacity(revealBook ? 0 : 1)
+                                    .offset(x: revealBook ? -geo.size.width / 2 : 0)
+                                    .overlay(
+                                        Image("hp1")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .padding(.trailing, 33)
+                                            .opacity(revealBook ? 1 : 0)
+                                            .scaleEffect(revealBook ? 1.0 : 0)
+                                    )
                             }
                         }
                         .animation(.easeOut(duration: 1.5).delay(2.3), value: animateViewsIn)
                     }
 
                     // MARK: Answers
+
                     LazyVGrid(columns: [GridItem(), GridItem()]) {
                         ForEach(1 ..< 5) { i in
-                            VStack {
-                                if animateViewsIn {
-                                    Text("Answer \(i)")
-                                        .multilineTextAlignment(.center)
-                                        .padding(10)
-                                        .frame(width: geo.size.width / 2.15, height: 80)
-                                        .background(.green.opacity(0.5))
-                                        .cornerRadius(15)
-                                        .minimumScaleFactor(0.5)
-                                        .transition(.scale)
+                            if tempAnswers[i - 1] == true {
+                                VStack {
+                                    if animateViewsIn && !tappedCorrectAnswer {
+                                        Text("Answer \(i)")
+                                            .answerFont()
+                                            .transition(.asymmetric(insertion: .scale,
+                                                                    removal: .scale(scale: 5).combined(with:
+                                                                        .opacity.animation(.easeOut(duration: 0.5)))))
+                                            .matchedGeometryEffect(id: "answer", in: namespace)
+                                    }
+                                } 
+                                .animation(.easeOut(duration: 1).delay(1.5),
+                                           value: animateViewsIn)
+                                .onTapGesture {
+                                    withAnimation(.easeOut(duration: 1)) {
+                                        tappedCorrectAnswer = true
+                                    }
                                 }
+                            } else {
+                                VStack {
+                                    if animateViewsIn {
+                                        Text("Answer \(i)")
+                                            .answerFont()
+                                            .transition(.scale)
+                                    }
+                                }
+                                .animation(.easeOut(duration: 1).delay(1.5),
+                                           value: animateViewsIn)
                             }
-                            .animation(.easeOut(duration: 1).delay(1.5),
-                                       value: animateViewsIn)
                         }
                     }
 
@@ -114,12 +196,88 @@ struct Gameplay: View {
                 }
                 .frameFromScreen()
                 .foregroundColor(.white)
+
+                // MARK: Celebration
+
+                VStack {
+                    Spacer()
+
+                    VStack {
+                        if tappedCorrectAnswer {
+                            Text("5")
+                                .font(.largeTitle)
+                                .padding(.top, 50)
+                                .transition(.offset(y: -geo.size.height / 4))
+                                .offset(x: movePointsToScore ? geo.size.width / 2.3 : 0,
+                                        y: movePointsToScore ? -geo.size.height / 13 : 0)
+                                .opacity(movePointsToScore ? 0 : 1)
+                                .onAppear {
+                                    withAnimation(.easeInOut(duration: 1).delay(3)) {
+                                        movePointsToScore = true
+                                    }
+                                }
+                        }
+                    }
+                    .animation(.easeInOut(duration: 1).delay(2), value: tappedCorrectAnswer)
+
+                    Spacer()
+
+                    VStack {
+                        if tappedCorrectAnswer {
+                            Text("Brilliant!")
+                                .font(.custom(Constants.hpFont, size: 100))
+                                .transition(.scale.combined(with: .offset(y: -geo.size.height / 2)))
+                        }
+                    }
+                    .animation(.easeInOut(duration: 1).delay(1), value: tappedCorrectAnswer)
+
+                    Spacer()
+
+                    if tappedCorrectAnswer {
+                        Text("Answer 1")
+                            .answerFont()
+                            .transition(.scale)
+                            .scaleEffect(2)
+                            .matchedGeometryEffect(id: "answer", in: namespace)
+                    }
+
+                    Group {
+                        Spacer()
+                        Spacer()
+                    }
+
+                    VStack {
+                        if tappedCorrectAnswer {
+                            Button("Next Level>") {
+                                // TODO: Reset level for next question
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.blue.opacity(0.5))
+                            .font(.largeTitle)
+                            .transition(.offset(y: geo.size.height / 3))
+                            .scaleEffect(scaleNextButton ? 1.2 : 1)
+                            .onAppear {
+                                withAnimation(.easeInOut(duration: 1.3).repeatForever()) {
+                                    scaleNextButton.toggle()
+                                }
+                            }
+                        }
+                    }
+                    .animation(.easeInOut(duration: 2.7).delay(2.7), value: tappedCorrectAnswer)
+
+                    Group {
+                        Spacer()
+                        Spacer()
+                    }
+                }
+                .foregroundColor(.white)
             }
             .frameFromScreen()
         }
         .ignoresSafeArea()
         .onAppear {
             animateViewsIn = true
+//            tappedCorrectAnswer = true // TODO: temp
         }
     }
 }

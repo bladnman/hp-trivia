@@ -39,3 +39,15 @@ extension View {
         )
     }
 }
+
+extension Text {
+    func answerFont() -> some View {
+        self
+            .multilineTextAlignment(.center)
+            .padding(10)
+            .frame(width: UIScreen.main.bounds.width / 2.15, height: 80)
+            .background(.green.opacity(0.5))
+            .cornerRadius(15)
+            .minimumScaleFactor(0.5)
+    }
+}
