@@ -8,7 +8,7 @@
 import Foundation
 import StoreKit
 
-enum BookStatus {
+enum BookStatus: Codable {
     case active, inactive, locked
 }
 
@@ -25,6 +25,7 @@ class Store: ObservableObject {
     private var productIDs = ["hp4", "hp5", "hp6", "hp7"]
 
     private var updates: Task<Void, Never>? = nil
+    private let savePath = FileManager.documentsDirectory.appending(path: "SavedBook Status")
 
     init() {
         updates = watchForUpdates()
@@ -67,6 +68,24 @@ class Store: ObservableObject {
 
         } catch {
             print("Couldn't purchase the product: \(error)")
+        }
+    }
+
+    func saveStatus() {
+        do {
+            let data = try JSONEncoder().encode(books)
+            try data.write(to: savePath)
+        } catch {
+            print("Error saving: \(error)")
+        }
+    }
+
+    func loadStatus() {
+        do {
+            let data = try Data(contentsOf: savePath)
+            books = try JSONDecoder().decode([BookStatus].self, from: data)
+        } catch {
+            // noop
         }
     }
 

@@ -52,3 +52,10 @@ extension Text {
             .minimumScaleFactor(0.5)
     }
 }
+
+extension FileManager {
+    static var documentsDirectory: URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
+    }
+}
