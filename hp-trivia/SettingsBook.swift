@@ -7,9 +7,7 @@
 
 import SwiftUI
 
-enum BookStatus {
-    case active, inactive, locked
-}
+
 
 struct SettingsBook: View {
     var imageName: String

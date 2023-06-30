@@ -9,9 +9,15 @@ import SwiftUI
 
 @main
 struct hp_triviaApp: App {
+    @StateObject private var store = Store()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(store)
+                .task {
+                    await store.loadProducts()
+                }
         }
     }
 }
